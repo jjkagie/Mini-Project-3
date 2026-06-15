@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/styles.css">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Edit Blog Post</h1>
+    <table>
+        <form action="/" method="POST">
+            <tr>
+                <td><label for="name">Your Name:</label></td>
+                <td><input type="text" id="name" name="name" value="<%= name %>"></td>
+            </tr>
+            <tr></tr>
+                <td><label for="title">Post Title:</label></td>
+                <td><input type="text" id="title" name="title" value="<%= title %>"></td>
+            </tr>
+            <tr>
+                <td><label for="content">Content:</label></td>
+                <td><input type="text" id="content" name="content" value="<%= content %>"></td>
+            </tr>
+            <tr>
+                <td><select name="tag">
+                    <option value="default">Select A Tag</option>
+                    <option value="Tech">Tech</option>
+                    <option value="Lifestyle">Lifestyle</option>
+                    <option value="Education">Education</option>
+                </select></td>
+                <td><button type="submit" name="btnEdit" value="<%= index %>">Edit Post</button></td>
+            </tr>
+        </form>
+    </table>
+</body>
+</html>

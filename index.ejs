@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Application</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <h1>Awesome Blog</h1>
+    <div id="create form">
+        <table>
+            <form action="/create" method="POST">
+                <tr>
+                    <td><label for="name">Your Name:</label></td>
+                    <td><input type="text" id="name" name="name"></td>
+                </tr>
+                <tr>
+                    <td><label for="title">Post Title:</label></td>
+                    <td><input type="text" id="title" name="title"></td>
+                </tr>
+                <tr>
+                    <td><label for="content">Content:</label></td>
+                    <td><input type="text" id="content" name="content"></td>
+                </tr>
+                <tr>
+                    <td><select name="tag">
+                        <option value="default">Select A Tag</option>
+                        <option value="Tech">Tech</option>
+                        <option value="Lifestyle">Lifestyle</option>
+                        <option value="Education">Education</option>
+                    </select></td>
+                    <td><input type="submit" value="Create"></td>
+                </tr>
+            
+            </form> 
+        </table>
+    </div>
+    <div id="search">
+        <table>
+            <form action="/search" method="POST">
+                <tr>
+                    <td><select name="tagFilter">
+                        <option value="default">Filter A Tag</option>
+                        <option value="Tech">Tech</option>
+                        <option value="Lifestyle">Lifestyle</option>
+                        <option value="Education">Education</option>
+                    </select></td>
+                    <td><input type="submit" value="Filter"></td>
+                </tr>
+            </form>
+        </table>
+    </div>
+    <% if( locals.posts.length != 0 ) { %>
+        
+        
+        <% posts.forEach((post, index) => { %>
+        <div class="table-container">
+        <table class="posts">
+            <tr>
+                <td class="post">
+                    <p class="name"><%= post["name"] %> posted:</p>
+                    <p class="title"><%= post["title"] %></p>
+                </td>
+            </tr>
+            <tr>
+                <td class="post" colspan="2"><p class="content"><%= post["content"] %></p></td>
+            </tr>
+            <tr>
+                <td class="post" colspan="2"><p class="time"><%= post["time"] %></p></td>
+            </tr>
+            <tr>
+                <td class="post">
+                    <form action="/edit" method="POST">
+                        <button type="submit" name="btnEdit" value="<%= index %>">Edit Post</button>
+                    </form>
+                    <form action="/delete" method="POST">
+                        <button type="submit" name="btnDel" value="<%= index %>">Delete Post</button>
+                    </form>
+                </td>
+            </tr>
+        </table>
+        </div>
+        <% }) %>
+        
+    <% } %>
+</body>
+</html>
