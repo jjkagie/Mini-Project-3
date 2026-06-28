@@ -8,13 +8,10 @@
 </head>
 <body>
     <h1>Awesome Blog</h1>
+    <a href="/account" class="accountLink">Account Settings</a><br>
     <div id="create form">
         <table>
             <form action="/create" method="POST">
-                <tr>
-                    <td><label for="name">Your Name:</label></td>
-                    <td><input type="text" id="name" name="name"></td>
-                </tr>
                 <tr>
                     <td><label for="title">Post Title:</label></td>
                     <td><input type="text" id="title" name="title"></td>
@@ -54,28 +51,28 @@
     <% if( locals.posts.length != 0 ) { %>
         
         
-        <% posts.forEach((post, index) => { %>
+        <% posts.forEach((post) => { %>
         <div class="table-container">
         <table class="posts">
             <tr>
                 <td class="post">
-                    <p class="name"><%= post["name"] %> posted:</p>
+                    <p class="name"><%= post["creator_name"] %> posted:</p>
                     <p class="title"><%= post["title"] %></p>
                 </td>
             </tr>
             <tr>
-                <td class="post" colspan="2"><p class="content"><%= post["content"] %></p></td>
+                <td class="post" colspan="2"><p class="content"><%= post["body"] %></p></td>
             </tr>
             <tr>
-                <td class="post" colspan="2"><p class="time"><%= post["time"] %></p></td>
+                <td class="post" colspan="2"><p class="time"><%= post["date_created"] %></p></td>
             </tr>
             <tr>
                 <td class="post">
                     <form action="/edit" method="POST">
-                        <button type="submit" name="btnEdit" value="<%= index %>">Edit Post</button>
+                        <button type="submit" name="btnEdit" value="<%= post["blog_id"] %>">Edit Post</button>
                     </form>
                     <form action="/delete" method="POST">
-                        <button type="submit" name="btnDel" value="<%= index %>">Delete Post</button>
+                        <button type="submit" name="btnDel" value="<%= post["blog_id"] %>">Delete Post</button>
                     </form>
                 </td>
             </tr>

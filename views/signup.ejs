@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign-In</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <h1>Sign Up For An Account</h1>
+    <form action="/signup" method="POST">
+        <input class="signupForm" name="username" type="text" placeholder="Display Name"><br>
+        <input class="signupForm" name="user_id" type="text" placeholder="Username"><br>
+        <input class="signupForm" name="password" type="password" placeholder="Password"><br>
+        <input class="signupForm" type="submit" value="Sign Up">
+    </form>
+    <a href="/login">Already Have An Account?</a>
+    <% if( locals.err ){ %>
+        <p>Error signing up: Username Already Exists</p>
+    <% } %>
+</body>
+</html>

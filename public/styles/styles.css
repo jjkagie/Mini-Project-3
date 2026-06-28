@@ -24,3 +24,19 @@ body {
 .title {
     font-style: italic;
 }
+
+.signupForm {
+    margin: 5px auto;
+}
+
+.loginForm {
+    margin: 5px auto;
+}
+
+.accountForm {
+    margin: 5px auto;
+}
+
+.accountLink {
+    margin-bottom: 10px;
+}

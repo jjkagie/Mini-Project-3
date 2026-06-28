@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <h1>Log In To An Existing Account</h1>
+    <form action="/login" method="POST">
+        <input class="loginForm" name="user_id" type="text" placeholder="Username"><br>
+        <input class="loginForm" name="password" type="password" placeholder="Password"><br>
+        <input class="loginForm" type="submit" value="Log In">
+    </form>
+    <a href="/signup">Don't Have An Account?</a>
+    <% if( locals.err ){ %>
+        <p>Error logging up: Username/Password May Be Incorrect</p>
+    <% } %>
+</body>
+</html>

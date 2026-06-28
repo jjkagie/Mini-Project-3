@@ -1,91 +1,185 @@
 import express from "express";
 import bodyParser from "body-parser"
+import pg from "pg"
+import md5 from "md5"
+
+const db = new pg.Client({
+    user: "postgres",
+    host: "localhost",
+    database: "BlogDB",
+    password: "*IK(OL8ik9ol",
+    port: 5432
+});
+
+db.connect();
 const app = express();
 const port = 3000;
 let blogPosts = [];
+let currentUser = {username: "", displayname: ""};
+let tag = "";
 
 app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {  
-    res.render("index.ejs", {
-        posts: blogPosts
-    });
+app.get("/", async (req, res) => {
+    if(currentUser["username"] === ""){
+        res.redirect("/signup");
+    }
+    else{
+        // get blogposts from db
+        let result = null;
+        if( tag !== "" ){
+            result = await db.query("SELECT * FROM blogs WHERE tag = $1", [tag]);
+        }
+        else{
+            result = await db.query("SELECT * FROM blogs");
+        }
+
+        res.render("index.ejs", {
+            posts: result.rows
+        });
+    }
 });
 
-app.post("/", (req, res) => {
-    let index = parseInt(req.body.btnEdit, 10);
-    blogPosts[index] = {
-        name: req.body["name"],
-        title: req.body["title"],
-        content: req.body["content"],
-        tag: req.body["tag"],
-        time: blogPosts[index]["time"]
+app.get("/signup", (req, res) => {
+    res.render("signup.ejs");
+});
+
+app.post("/signup", async (req, res) => {
+    let username = req.body["username"];
+    let user_id = req.body["user_id"];
+    let password = req.body["password"];
+    currentUser = {username: "", displayname: ""};
+
+    // hash user_id and password
+    user_id = md5(user_id);
+    password = md5(password);
+
+    const result = await db.query("SELECT user_id FROM users WHERE user_id = $1", [user_id]);
+    // create a new user with this data
+    // if user_id isn't used
+    if( result.rows.length === 0){
+        await db.query("INSERT INTO users VALUES ($1,$2,$3)", [user_id, password, username]);
+        res.redirect("/login");
     }
+    // else return back to the signup page with an error message
+    else{
+        res.render("signup.ejs", { err: "true" });
+    }
+});
+
+app.get("/login", (req, res) => {
+    res.render("login.ejs");
+});
+
+app.post("/login", async (req, res) => {
+    let user_id = md5(req.body["user_id"]);
+    let password = md5(req.body["password"]);
+
+    const result = await db.query("SELECT * FROM users WHERE user_id = $1 AND password = $2", [user_id,password]);
+    
+    // check if user_id and password match the database
+    // if so, redirect to home page
+    if( result.rows.length === 1 &&
+        user_id === result.rows[0].user_id &&
+        password === result.rows[0].password
+    ){
+        let username = result.rows[0].name;
+        currentUser = {username: user_id, displayname: username};
+        res.redirect("/");
+    }
+    // else return to /login with an error
+    else{
+        res.render("login.ejs", { err: "true" });
+    }
+});
+
+app.post("/", async (req, res) => {
+    let blog_id = parseInt(req.body.btnEdit, 10);
+    
+    await db.query("UPDATE blogs SET title = $1, body = $2, tag = $3 WHERE blog_id = $4",
+        [req.body["title"], req.body["content"], req.body["tag"], blog_id]
+    );
 
     res.redirect("/");
-})
+});
 
-app.post("/delete", (req, res) => {
-    let index = parseInt(req.body.btnDel, 10);
-    blogPosts.splice(index, 1);
-    res.redirect("/");
-})
+app.post("/delete", async (req, res) => {
+    let blog_id = parseInt(req.body.btnDel, 10);
 
-app.post("/edit", (req, res) => {
-    let index = parseInt(req.body.btnEdit, 10)
-    let post = blogPosts[ index ];
-    res.render("edit.ejs", {
-        name: post["name"],
-        title: post["title"],
-        content: post["content"],
-        index: index
-    })
-})
+    const result = await db.query("SELECT creator_user_id FROM blogs WHERE blog_id = $1", [blog_id]);
 
-app.post("/create", (req, res) => {
+    if( result.rows[0].creator_user_id === currentUser.username ){
+        await db.query("DELETE FROM blogs WHERE blog_id = $1", [blog_id]);
+        res.redirect("/");
+    }  
+});
+
+app.post("/edit", async (req, res) => {
+    let blog_id = parseInt(req.body.btnEdit, 10)
+
+    const post = await db.query("SELECT * FROM blogs WHERE blog_id = $1", [blog_id]);
+
+    if( post.rows[0].creator_user_id === currentUser.username )
+        res.render("edit.ejs", {
+            name: post.rows[0].creator_name,
+            title: post.rows[0].title,
+            content: post.rows[0].body,
+            index: blog_id
+        });
+});
+
+app.post("/create", async (req, res) => {
     let date = new Date().toString();
     date = date.substring(0,date.indexOf("GMT")-1);
-    blogPosts.push({
-        name: req.body["name"],
-        title: req.body["title"],
-        content: req.body["content"],
-        tag: req.body["tag"],
-        time: date
-    });
+
+    await db.query("INSERT INTO blogs (creator_name, creator_user_id, title, body, date_created, tag) VALUES ($1, $2, $3, $4, $5, $6)",
+        [currentUser["displayname"], currentUser["username"], req.body["title"], req.body["content"], date, req.body["tag"]]
+    );
+
     res.redirect("/");
 });
 
 app.post("/search", (req, res) => {
-    let filteredPosts = [];
-    let filteredTag = req.body["tagFilter"];
+    tag = req.body["tagFilter"];
 
-    blogPosts.forEach((post) => {
-        if( post["tag"] == filteredTag ){
-            filteredPosts.push(post);
-        }
-    });
-    if( filteredTag == "default" ){
-        res.redirect("/");
+    if( tag === "default" ){
+        tag = "";
     }
-    else {
-        res.render("index.ejs", {
-            posts: filteredPosts
-        })
-    }   
-})
 
-function editPost(index){
-    app.get("/edit", (req, res) => {
-        res.render("edit.ejs", {
-            post: blogPosts[index],
-            index: index                    
-        });
-    });
-}
+    res.redirect("/");
+});
 
+app.get("/account", (req, res) => {
+    res.render("account.ejs", { name: currentUser.displayname });
+});
+
+app.post("/account", async (req, res) => {
+    let currentUserID = md5(req.body["user_id"]);
+    let currentPassword = md5(req.body["password"]);
+    let newDisplayName = "";
+    let newUserID = "";
+    let newPassword = "";
+    
+    const result = await db.query("SELECT * FROM users WHERE user_id = $1 AND password = $2", [currentUserID, currentPassword]);
+
+    if( result.rows.length === 1 ){
+        newDisplayName = req.body["newName"];
+        newUserID = md5(req.body["newUserID"]);
+        newPassword = md5(req.body["newPassword"]);
+
+        await db.query("UPDATE users SET user_id = $1, password = $2, name = $3 WHERE user_id = $4 AND password = $5",
+            [newUserID, newPassword, newDisplayName, currentUserID, currentPassword]
+        );
+
+        res.redirect("/login");
+    }
+    else{
+        res.render("account.ejs", { name: currentUser.displayname, err: "true" });
+    }
+});
 
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}.`);
-})
+});
